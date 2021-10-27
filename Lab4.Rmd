@@ -1,0 +1,66 @@
+---
+title: "Lab4"
+author: "Kyle Quagliano"
+date: "10/24/2021"
+output: html_document
+---
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+defense <- read_excel('cyclonesFootball2020.xlsx', sheet='Defensive')
+offense <- read_excel('cyclonesFootball2020.xlsx', sheet='Offensive')
+biography <- read_excel('cyclonesFootball2020.xlsx', sheet='Biography')
+defense$Name <- factor(defense$Name)
+defense$Opponent_Opponent <- factor(defense$Opponent_Opponent)
+offense$Name <- factor(offense$Name)
+offense$Opponent_Opponent <- factor(offense$Opponent_Opponent)
+biography$Name <- factor(biography$Name)
+defense$Tackles_Solo  <- as.numeric(defense$Tackles_Solo)
+defense$Tackles_ASST <- as.numeric(defense$Tackles_ASST)  
+defense$Tackles_TFL  <- as.numeric(defense$Tackles_TFL)
+defense$Tackles_Sack <- as.numeric(defense$Tackles_Sack) 
+defense$Turnover_FF <- as.numeric(defense$Turnover_FF)
+defense$Turnover_FR <- as.numeric(defense$Turnover_FR)
+defense$Turnover_INT <- as.numeric(defense$Turnover_INT)
+defense$Pass_QBH  <- as.numeric(defense$Pass_QBH)
+defense$Pass_PB <- as.numeric(defense$Pass_PB)  
+offense$Receiving_REC <- as.numeric(offense$Receiving_REC)
+offense$Receiving_YDS <- as.numeric(offense$Receiving_YDS)
+offense$Receiving_TD <- as.numeric(offense$Receiving_TD)
+offense$Rushing_ATT <- as.numeric(offense$Rushing_ATT)
+offense$Rushing_YDS <- as.numeric(offense$Rushing_YDS)
+offense$Rushing_TD <- as.numeric(offense$Rushing_TD)
+offense$`Passing_CMP-ATT` <- as.numeric(offense$`Passing_CMP-ATT`)
+offense$Passing_YDS <- as.numeric(offense$Passing_YDS)
+offense$Passing_TD <- as.numeric(offense$Passing_TD)
+offense$Passing_INT <- as.numeric(offense$Passing_INT)
+biography$Weight <- as.numeric(biography$Weight)
+defClean <- defense %>% mutate(rowNumber = row_number())
+offClean <- offense %>% mutate(rowNumber = row_number())
+bioClean <- biography
+str(defClean)
+str(offClean)
+str(bioClean)
+offClean <- offClean %>% pivot_longer(Receiving_REC:Receiving_YDS, names_to='Receiving Receptions/ Yards', values_to= 'Stat')
+str(offClean)
+playerLevelStats <- offense
+playerLevelStats <- playerLevelStats %>% pivot_longer(Receiving_REC:Passing_INT, names_to= 'Offense stat', values_to= 'stat')
+str(playerLevelStats)
+TeamLevelStats <- summarize(offClean, TotalReceptions = sum(offense$Receiving_REC, na.rm = TRUE), TotalReceivingYards = sum(offense$Receiving_YDS, na.rm = TRUE), TotalReceivingTDs = sum(offense$Receiving_TD, na.rm = TRUE), TotalRushingAttempts = sum(offense$Rushing_ATT, na.rm = TRUE), TotalRushingYards = sum(offense$Rushing_YDS, na.rm = TRUE), TotalRushingTDs = sum(offense$Rushing_TD, na.rm = TRUE), TotalPassingYards = sum(offense$Passing_YDS, na.rm = TRUE), TotalPassingTDS = sum(offense$Passing_TD, na.rm = TRUE), TotalPassingINT = sum(offense$Passing_INT, na.rm = TRUE))
+ggplot(aes(x=`Offense stat`, y=`stat`), data=playerLevelStats) + geom_boxplot() + facet_wrap(~Name)
+"The pattern that I can see in the plot is that each player only has a considerable amount of data for some stats meaning that they only specialize in one specific part of the game."
+
+receivingStats <- playerLevelStats %>% filter(`Offense stat` == "Receiving_YDS" & Opponent_Opponent == "Oklahoma" | Opponent_Opponent == 'Oregon')
+ggplot(aes(x=Opponent_Opponent, y=`stat`), data =receivingStats) + geom_point()
+"Iowa States offense had better stats against Oregon with multiple players receiving over 100 yards compared to Oklahoma where only 1 player received over 100 yards"
+
+bioClean <- bioClean %>% separate(Hometown, into = c("Town", "State"), sep= ',')
+str(bioClean)
+table(bioClean$State)
+
+
+```
+
